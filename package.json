@@ -1,0 +1,19 @@
+{
+  "name": "node-ddos-protector",
+  "version": "0.1.0",
+  "description": "Highly customizable ddos protector for with native node.js api's",
+  "main": "node-ddos-protector.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ddos",
+    "ddos-protector",
+    "security",
+    "cyber-security",
+    "node-ddos-protector",
+    "cybersecurity"
+  ],
+  "author": "Necdet Arda Etiman",
+  "license": "MIT"
+}
