@@ -77,9 +77,9 @@ let protector = new DdosProtector().init(options).openWhitelist(logPath);
 
 You have to write your whitelisted ip's with that synthax:
 
-64.355.234.643 ``
-87.434.553.236 ``
-117.434.263.674 ``
+64.355.234.643      
+87.434.553.236      
+117.434.263.674      
 
 ## Documentation
 

@@ -11,3 +11,7 @@ Added whitelist support and added documentation for vanilla node.js api.
 # 0.2.1
 
 Documentation fix, no other changes.
+
+# 0.2.2
+
+Documentation fix, no other changes.
