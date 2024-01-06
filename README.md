@@ -48,6 +48,39 @@ let protector = new DdosProtector().init(options);
 
 ```
 
+If you want, you can open an whitelist, which takes an argument as either a string array or the path of a file which includes ip addresses:
+
+```javascript
+
+// same setup with previous example
+
+// since in localhost ip values takes that value, you have to give that value for being able to test it on localhost.
+// in production you have to add real ip values to that list:
+
+let protector = new DdosProtector().init(options).openWhitelist(["::1"]) 
+
+```
+
+Or you can do that thing:
+
+```javascript
+
+// i strongly recommend to use path module for defining platform-agnostic paths:
+
+let path = require("path");
+
+let logPath = path.join(process.cwd(), "logs", "whitelist.txt");
+
+let protector = new DdosProtector().init(options).openWhitelist(logPath);
+
+```
+
+You have to write your whitelisted ip's with that synthax:
+
+64.355.234.643
+87.434.553.236
+117.434.263.674
+
 ## Documentation
 
 You can use it with every framework that you want if you can reach request and response objects on same time. If that request not includes `req.socket.remoteAddress` then you have to manually add it or you can't use it.
@@ -56,7 +89,7 @@ Here is some examples from frameworks:
 
 ### Express.js Example
 
-Since express.js's middlewares blocking if you don't call `next()` function, you can not call that function if an attacker detected. For example, you can use it like that:
+Since express.js's middlewares blocking if you don't call `next()` function, you can not use that function if an attacker detected. For example, you can use it like that:
 
 ```javascript
 
@@ -119,6 +152,39 @@ server.start(3000);
 
 ```
 
+### Vanilla Node.js Setup
+
+If you have a simple vanilla node.js server, you can use that package like that:
+
+```javascript
+
+let http = require("http");
+let { DdosProtector } = require("node-ddos-protector");
+
+let protector = new DdosProtector().init({ 
+    banTime: 7200, 
+    attackCount: 20, 
+    attackTimespan: 30, 
+    errorCode: 429 
+});
+
+http.createServer(function(req, res){
+    if(req.method === "GET" && req.url === "/"){
+        protector.handleBanningAndAllowing(req, res);
+
+        // your other stuff
+
+        if(res.statusCode === 429){
+            res.setHeader("Content-Type", "text/plain")
+            res.end("429 too many requests");
+        } else {
+            // return whatever you want
+        }
+    }
+}).listen(3000);
+
+```
+
 ## Planned Improvements
 
 We are planned to add that features:
@@ -128,8 +194,6 @@ We are planned to add that features:
 * option for writing individual logs on individual files
 
 * option for writing only banned ip's
-
-* adding whitelist
 
 ## Stability
 

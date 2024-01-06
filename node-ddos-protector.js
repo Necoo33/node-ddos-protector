@@ -1,3 +1,5 @@
+let fs = require("fs");
+
 class DdosProtector {
     constructor(){
         this.individualUsers = [{ ip: "999.999.999.999", count: 1,  }];
@@ -6,6 +8,7 @@ class DdosProtector {
         this.banTime = 7200;
         this.bannedUsers = [];
         this.errorCode = 429;
+        this.whitelist = null;
     }
 
     init(options = null){
@@ -28,14 +31,8 @@ class DdosProtector {
             if(this.individualUsers[i].isBanned){
                 let now = new Date().getTime();
 
-                console.log("eğer kullanıcı banlanmışsa çalışdı!");
-
-                console.log("now unsuru: ", now)
-                console.log("kullanıcı'nın banlandığı zaman: ", this.individualUsers[i].dateToBeBanned);
                 if(now > this.individualUsers[i].dateToBeBanned){
                     this.individualUsers[i].isBanned = false;
-
-                    console.log("ban sona erdi bloğu çalışdı!");
 
                     banEnded = true;
 
@@ -49,12 +46,8 @@ class DdosProtector {
         if(userWhichReAllowed){
             this.individualUsers = this.individualUsers.filter(param => param.ip !== userWhichReAllowed.ip)
 
-            console.log("banlı kullanıcılar listesi: ", this.individualUsers);
-
             this.unBanUser(req, res, userWhichReAllowed.ip);
         }
-
-        // bir tek aşşağıdaki for loop'u eklendi, eğer çalışmazsa ve işin içinden çıkamazsan bunu şerhle:
 
         for(let i = 0; i < this.individualUsers.length; i++){
             let now = new Date().getTime();
@@ -72,10 +65,6 @@ class DdosProtector {
                 if(this.individualUsers[i].ip === req.socket.remoteAddress){
                     if(!this.individualUsers[i].isBanned){
                         this.individualUsers[i].count = this.individualUsers[i].count + 1;
-
-                        if(this.individualUsers[i].count > 1){
-                            //res.setHeader("Content-Type", "text/html");
-                        }
                     }
             
                     let now = new Date().getTime();
@@ -99,12 +88,25 @@ class DdosProtector {
                 }
             }
         }
-        
-        if(!anyRepeatedAttack) {
-            this.individualUsers.push({ ip: req.socket.remoteAddress, count: 1, startTime: new Date().getTime(), isBanned: false, dateToBeBanned: null });
-        }
 
-        console.log("individual users: ", this.individualUsers);
+        if(!anyRepeatedAttack) {
+            if(this.whitelist !== null){
+                let listMemberFound = false;
+
+                for(let i = 0; i < this.whitelist.length; i++){
+                    if(this.whitelist[i] === req.socket.remoteAddress){
+                        listMemberFound = true;
+                        break;
+                    }
+                }
+
+                if(!listMemberFound){
+                    this.individualUsers.push({ ip: req.socket.remoteAddress, count: 1, startTime: new Date().getTime(), isBanned: false, dateToBeBanned: null });
+                }
+            } else {
+                this.individualUsers.push({ ip: req.socket.remoteAddress, count: 1, startTime: new Date().getTime(), isBanned: false, dateToBeBanned: null });
+            }
+        }
 
         return this;
     }
@@ -117,6 +119,32 @@ class DdosProtector {
     unBanUser(req, res, userId){
         res.statusCode = 200;
         res.setHeader("X-Unban-User", userId)
+    }
+
+    openWhitelist(list){
+        this.whitelist = [];
+
+        if(Array.isArray(list)){
+            for(let i = 0; i < list.length; i++){
+                this.whitelist.push(list[i]);        
+            }
+        }
+
+        if(typeof list === "string"){
+            fs.readFile(list, "utf8", function(err, data){
+                if(err){
+                    console.log("Error when reading file: ", err)
+                }
+
+                let splitTheData = data.split("\n");
+
+                for(let i = 0; i < splitTheData.length; i++){
+                    this.whitelist.push(splitTheData[i].trim())
+                }
+            }.bind(this));
+        }
+
+        return this;
     }
 
     logEverything(){
